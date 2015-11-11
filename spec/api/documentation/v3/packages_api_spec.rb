@@ -185,9 +185,9 @@ resource 'Packages (Experimental)', type: :api do
 
       body_parameter :type, 'Package type', required: true, valid_values: ['bits', 'docker']
       body_parameter :data, 'Data for docker packages.  Can be empty for bits packages.', required: false
-      body_parameter :data_image, 'Location of docker image.  Required for docker packages.'
+      body_parameter :data_image, 'Location of docker image.  Required for docker packages.', example_values: ['registry/image:latest']
       body_parameter :data_credentials, 'Credentials for private docker image, available fields are user, password, email, login server. ', required: false
-      body_parameter :data_store_image, 'Whether or not the backend should cache the image. defaults to false', required: false
+      body_parameter :data_store_image, 'Whether or not the backend should cache the image. For docker packages only.', default: false,  required: false, valid_values: ['true', 'false']
 
       example 'Create a Package' do
         expect {
