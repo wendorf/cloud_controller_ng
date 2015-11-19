@@ -5,8 +5,8 @@ module VCAP::CloudController
     module Buildpack
       module V3
         class StagingCompletionHandler < VCAP::CloudController::Diego::StagingCompletionHandlerBase
-          def initialize(runners)
-            super(runners, Steno.logger('cc.stager'), 'diego.staging.v3.')
+          def initialize
+            super(nil, Steno.logger('cc.stager'), 'diego.staging.v3.')
           end
 
           def self.success_parser
@@ -70,15 +70,15 @@ module VCAP::CloudController
 
           def save_staging_result(droplet, payload)
             lifecycle_data = payload[:result][:lifecycle_metadata]
-            buildpack = lifecycle_data[:detected_buildpack]
-            buildpack = droplet.buildpack_lifecycle_data.buildpack if buildpack.blank?
+            buildpack      = lifecycle_data[:detected_buildpack]
+            buildpack      = droplet.buildpack_lifecycle_data.buildpack if buildpack.blank?
 
             droplet.class.db.transaction do
               droplet.lock!
-              droplet.process_types = payload[:result][:process_types]
+              droplet.process_types               = payload[:result][:process_types]
+              droplet.execution_metadata          = payload[:result][:execution_metadata]
               droplet.buildpack_receipt_buildpack = buildpack
               droplet.mark_as_staged
-              droplet.execution_metadata = payload[:result][:execution_metadata]
               droplet.save_changes(raise_on_save_failure: true)
             end
           end

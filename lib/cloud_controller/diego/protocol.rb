@@ -40,13 +40,23 @@ module VCAP::CloudController
         env = Environment.new(app, EnvironmentVariableGroup.running.environment_json).as_json
         logger.debug2("running environment: #{env.map { |e| e['name'] }}")
 
+
+        metadata=nil
+        if app.app
+          metadata = app.app.droplet.execution_metadata
+        else
+          metadata=app.execution_metadata
+        end
+
+
+
         {
           'process_guid'                    => ProcessGuid.from_app(app),
           'memory_mb'                       => app.memory,
           'disk_mb'                         => app.disk_quota,
           'file_descriptors'                => app.file_descriptors,
           'stack'                           => app.stack.name,
-          'execution_metadata'              => app.execution_metadata,
+          'execution_metadata'              => metadata,
           'environment'                     => env,
           'num_instances'                   => app.desired_instances,
           'routes'                          => app.uris,

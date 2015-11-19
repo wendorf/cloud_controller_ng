@@ -102,8 +102,8 @@ class PackagesController < ApplicationController
     droplet = PackageStageAction.new.stage(package, staging_message, stagers)
 
     render status: :created, json: droplet_presenter.present_json(droplet)
-  rescue PackageStageAction::InvalidPackage => e
-    invalid_request!(e.message)
+  # rescue PackageStageAction::InvalidPackage => e
+  #   invalid_request!(e.message)
   rescue PackageStageAction::SpaceQuotaExceeded
     unable_to_perform!('Staging request', "space's memory limit exceeded")
   rescue PackageStageAction::OrgQuotaExceeded

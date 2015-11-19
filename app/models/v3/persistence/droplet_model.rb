@@ -14,6 +14,11 @@ module VCAP::CloudController
       STAGED_STATE,
       EXPIRED_STATE
     ].freeze
+    COMPLETED_STATES = [
+      FAILED_STATE,
+      STAGED_STATE,
+      EXPIRED_STATE
+    ].freeze
 
     many_to_one :package, class: 'VCAP::CloudController::PackageModel', key: :package_guid, primary_key: :guid, without_guid_generation: true
     many_to_one :app, class: 'VCAP::CloudController::AppModel', key: :app_guid, primary_key: :guid, without_guid_generation: true
@@ -53,12 +58,15 @@ module VCAP::CloudController
       self.state = STAGED_STATE
     end
 
+    #TODO: better way to know this, possibly not saving data for docker type b/c there is no data yet
     def lifecycle_type
-      BuildpackLifecycleDataModel::LIFECYCLE_TYPE if self.buildpack_lifecycle_data
+      return BuildpackLifecycleDataModel::LIFECYCLE_TYPE if self.buildpack_lifecycle_data
+      return 'docker'
     end
 
     def lifecycle_data
-      buildpack_lifecycle_data if self.buildpack_lifecycle_data
+      return buildpack_lifecycle_data if self.buildpack_lifecycle_data
+      OpenStruct.new
     end
   end
 end

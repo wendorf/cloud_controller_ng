@@ -32,10 +32,11 @@ module VCAP::CloudController
               state:                 'STARTED',
               diego:                 true,
               droplet_hash:          app.droplet.droplet_hash,
-              package_hash:          package_hash,
+              docker_image: package.docker_data.image,
+              package_hash:          package.docker_data.image,
               package_state:         'STAGED',
               package_pending_since: nil,
-              environment_json:      app.environment_variables
+              environment_json:      app.environment_variables,
             })
         end
       end
