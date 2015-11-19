@@ -198,10 +198,16 @@ module LegacyApiDsl
 
     def standard_list_parameters(controller)
       if controller.query_parameters.size > 0
+        query_parameters = controller.query_parameters
+
+        if controller.equal? VCAP::CloudController::RoutesController
+          query_parameters = controller.query_parameters.to_a.reject {|q| q == 'generate_port' }
+        end
+
         query_parameter_description = 'Parameters used to filter the result set.<br/>'
         query_parameter_description += 'Format queries as &lt;filter&gt;&lt;op&gt;&lt;value&gt;<br/>'
         query_parameter_description += ' Valid ops: : &gt;= &lt;= &lt; &gt; IN<br/>'
-        query_parameter_description += " Valid filters: #{controller.query_parameters.to_a.join(', ')}"
+        query_parameter_description += " Valid filters: #{query_parameters.to_a.join(', ')}"
 
         examples = ['q=filter:value', 'q=filter>value', 'q=filter IN a,b,c']
         request_parameter :q, query_parameter_description, { html: true, example_values: examples }
