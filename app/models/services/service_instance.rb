@@ -70,9 +70,16 @@ module VCAP::CloudController
     end
 
     def validate
+      # this doesn't seem to cause the right error, but the check seems to do
+      # the right thing
+      errors.add(:name, "The service instance name is taken: #{name}") if space.service_instances.map{|inst| inst.name}.include?(name)
       validates_presence :name
       validates_presence :space
-      validates_unique [:space_id, :name]
+      validates_unique [:space_id, :name], where: (proc do |_, obj, arr|
+                                                      vals = arr.map { |x| obj.send(x) }
+                                                      next if vals.any?(&:nil?)
+                                                      ServiceInstance.where(arr.zip(vals))
+                                                    end)
       validates_max_length 50, :name
     end
 
