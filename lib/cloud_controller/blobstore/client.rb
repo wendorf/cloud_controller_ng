@@ -4,6 +4,7 @@ require 'fog'
 require 'cloud_controller/blobstore/directory'
 require 'cloud_controller/blobstore/blob'
 require 'cloud_controller/blobstore/idempotent_directory'
+require 'httpclient'
 
 module CloudController
   module Blobstore
@@ -20,6 +21,7 @@ module CloudController
         @cdn = cdn
         @min_size = min_size || 0
         @max_size = max_size
+        @client = HTTPClient.new
       end
 
       def local?
@@ -30,7 +32,14 @@ module CloudController
         !file(key).nil?
       end
 
+
       def download_from_blobstore(source_key, destination_path, mode: nil)
+        if local?
+          @client.get('10.10.17.8/webdav/'+destination_path, {}, {})
+          logger.info('BLOBSTORE DOWNLOAD', destination_path: destination_path, source_key: source_key)
+          return
+        end
+
         FileUtils.mkdir_p(File.dirname(destination_path))
         File.open(destination_path, 'wb') do |file|
           (@cdn || files).get(partitioned_key(source_key)) do |*chunk|
@@ -63,6 +72,11 @@ module CloudController
           next unless within_limits?(size)
 
           begin
+            if local?
+              @client.put('10.10.17.8/webdav/'+destination_key, file, {})
+              logger.info('CP TO BLOBSTORE', destination_key: destination_key, source_path: source_path)
+              return
+            end
             mime_type = MIME::Types.of(source_path).first.try(:content_type)
 
             files.create(
