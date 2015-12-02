@@ -75,13 +75,14 @@ module VCAP::CloudController
 
       describe 'lifecycle' do
         context 'when lifecycle is provided' do
+          let(:valid_buildpack) { Buildpack.make(name: 'java') }
           let(:params) do
             {
               name: 'some_name',
               lifecycle: {
                 type: 'buildpack',
                 data: {
-                  buildpack: 'java',
+                  buildpack: valid_buildpack.name,
                   stack: 'cflinuxfs2'
                 }
               }

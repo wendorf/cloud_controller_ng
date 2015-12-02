@@ -24,11 +24,19 @@ module VCAP::CloudController
 
     validate :stack_name_must_be_in_db
 
+    validate :buildpack_is_valid
+
     def stack_name_must_be_in_db
       return unless stack.is_a?(String)
       if Stack.find(name: stack).nil?
         errors.add(:stack, 'is invalid')
       end
+    end
+
+    def buildpack_is_valid
+      return unless buildpack.is_a?(String)
+      buildpack_validator = BuildpackRequestValidator.new({ buildpack: buildpack })
+      errors.add(:buildpac, buildpack_validator.errors.full_messages) unless buildpack_validator.valid?
     end
   end
 end

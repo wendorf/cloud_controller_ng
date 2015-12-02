@@ -43,9 +43,6 @@ class AppsV3Controller < ApplicationController
     message = AppCreateMessage.create_from_http_request(assembled_request)
     unprocessable!(message.errors.full_messages) unless message.valid?
 
-    buildpack_validator = BuildpackRequestValidator.new({ buildpack: message.buildpack })
-    unprocessable!(buildpack_validator.errors.full_messages) unless buildpack_validator.valid?
-
     space_not_found! unless Space.where(guid: message.space_guid).count > 0
     space_not_found! unless can_create?(message.space_guid)
 
@@ -64,9 +61,6 @@ class AppsV3Controller < ApplicationController
 
     app_not_found! if app.nil? || !can_read?(space.guid, org.guid)
     unauthorized! unless can_update?(space.guid)
-
-    buildpack_validator = BuildpackRequestValidator.new({ buildpack: message.buildpack })
-    unprocessable!(buildpack_validator.errors.full_messages) unless buildpack_validator.valid?
 
     app = AppUpdate.new(current_user, current_user_email).update(app, message)
 

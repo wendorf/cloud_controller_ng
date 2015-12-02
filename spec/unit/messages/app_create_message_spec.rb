@@ -265,6 +265,7 @@ module VCAP::CloudController
         context 'when lifecycle data is provided' do
           context 'both a valid stack and buildpack are provided' do
             let(:valid_stack) { Stack.make(name: 'some-other-valid-stack') }
+            let(:valid_buildpack) { Buildpack.make(name: 'java') }
             let(:params) do
               {
                 name: 'some_name',
@@ -272,7 +273,7 @@ module VCAP::CloudController
                 lifecycle: {
                   type: 'buildpack',
                   data: {
-                    buildpack: 'java',
+                    buildpack: valid_buildpack.name,
                     stack: valid_stack.name
                   }
                 }

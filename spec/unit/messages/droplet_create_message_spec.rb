@@ -119,6 +119,8 @@ module VCAP::CloudController
 
       context 'when lifecycle is provided' do
         it 'is valid' do
+          Buildpack.make(name: 'java')
+
           params = { lifecycle: { type: 'buildpack', data: { buildpack: 'java', stack: 'cflinuxfs2' } } }
           message = DropletCreateMessage.new(params)
           expect(message).to be_valid
