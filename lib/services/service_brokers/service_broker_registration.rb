@@ -2,11 +2,12 @@ module VCAP::Services::ServiceBrokers
   class ServiceBrokerRegistration
     attr_reader :broker, :warnings
 
-    def initialize(broker, service_manager, services_event_repository)
+    def initialize(broker, service_manager, services_event_repository, route_services_enabled=false)
       @broker = broker
       @service_manager = service_manager
       @warnings = []
       @services_event_repository = services_event_repository
+      @route_services_enabled = route_services_enabled
     end
 
     def create
@@ -77,6 +78,12 @@ module VCAP::Services::ServiceBrokers
 
     def validate_catalog!
       raise_humanized_exception(catalog.errors) unless catalog.valid?
+      catalog.services.each { |service|
+        if service.requires.include?('route_forwarding') && !@route_services_enabled
+          @warnings << "Service #{service.name} is declared to be a route service but support for route services is disabled." \
+                       ' Users will be prevented from binding instances of this service with routes.'
+        end
+      }
     end
 
     def client_manager

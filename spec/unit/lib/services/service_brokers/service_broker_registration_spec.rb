@@ -31,6 +31,7 @@ module VCAP::Services::ServiceBrokers
         stub_request(:get, 'http://cc:auth1234@broker.example.com/v2/catalog').to_return(body: '{}')
         allow(VCAP::Services::SSO::DashboardClientManager).to receive(:new).and_return(client_manager)
         allow(V2::Catalog).to receive(:new).and_return(catalog)
+        allow(catalog).to receive(:services).and_return([])
         allow(ServiceManager).to receive(:new).and_return(service_manager)
 
         allow(client_manager).to receive(:has_warnings?).and_return(false)
@@ -316,6 +317,7 @@ module VCAP::Services::ServiceBrokers
         stub_request(:get, "http://cc:auth1234@#{new_broker_host}/v2/catalog").to_return(status: status, body: body)
         allow(VCAP::Services::SSO::DashboardClientManager).to receive(:new).and_return(client_manager)
         allow(V2::Catalog).to receive(:new).and_return(catalog)
+        allow(catalog).to receive(:services).and_return([])
         allow(ServiceManager).to receive(:new).and_return(service_manager)
 
         allow(client_manager).to receive(:has_warnings?).and_return(false)
