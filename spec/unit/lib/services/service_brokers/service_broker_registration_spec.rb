@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module VCAP::Services::ServiceBrokers
   describe ServiceBrokerRegistration do
-    subject(:registration) { ServiceBrokerRegistration.new(broker, service_manager, services_event_repository) }
+    subject(:registration) { ServiceBrokerRegistration.new(broker, service_manager, services_event_repository, false) }
 
     let(:client_manager) { instance_double(VCAP::Services::SSO::DashboardClientManager, synchronize_clients_with_catalog: true, warnings: []) }
     let(:catalog) { instance_double(VCAP::Services::ServiceBrokers::V2::Catalog, valid?: true) }
@@ -88,7 +88,7 @@ module VCAP::Services::ServiceBrokers
       context 'when invalid' do
         context 'because the broker has errors' do
           let(:broker) { VCAP::CloudController::ServiceBroker.new }
-          let(:registration) { ServiceBrokerRegistration.new(broker, service_manager, services_event_repository) }
+          let(:registration) { ServiceBrokerRegistration.new(broker, service_manager, services_event_repository, false) }
 
           it 'returns nil' do
             expect(registration.create).to be_nil
@@ -397,7 +397,7 @@ module VCAP::Services::ServiceBrokers
 
       context 'when invalid' do
         context 'because the broker has errors' do
-          let(:registration) { ServiceBrokerRegistration.new(broker, service_manager, services_event_repository) }
+          let(:registration) { ServiceBrokerRegistration.new(broker, service_manager, services_event_repository, false) }
 
           before do
             broker.name = nil

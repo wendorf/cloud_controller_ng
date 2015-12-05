@@ -2,7 +2,7 @@ module VCAP::Services::ServiceBrokers
   class ServiceBrokerRegistration
     attr_reader :broker, :warnings
 
-    def initialize(broker, service_manager, services_event_repository, route_services_enabled=false)
+    def initialize(broker, service_manager, services_event_repository, route_services_enabled)
       @broker = broker
       @service_manager = service_manager
       @warnings = []
@@ -13,6 +13,7 @@ module VCAP::Services::ServiceBrokers
     def create
       return unless broker.valid?
       validate_catalog!
+      route_service_warning unless @route_services_enabled
       broker.save
 
       begin
@@ -37,6 +38,7 @@ module VCAP::Services::ServiceBrokers
       end
 
       validate_catalog!
+      route_service_warning unless @route_services_enabled
       synchronize_dashboard_clients!
 
       broker.db.transaction do
@@ -78,12 +80,6 @@ module VCAP::Services::ServiceBrokers
 
     def validate_catalog!
       raise_humanized_exception(catalog.errors) unless catalog.valid?
-      catalog.services.each { |service|
-        if service.requires.include?('route_forwarding') && !@route_services_enabled
-          @warnings << "Service #{service.name} is declared to be a route service but support for route services is disabled." \
-                       ' Users will be prevented from binding instances of this service with routes.'
-        end
-      }
     end
 
     def client_manager
@@ -101,6 +97,15 @@ module VCAP::Services::ServiceBrokers
     def raise_humanized_exception(errors)
       humanized_message = formatter.format(errors)
       raise VCAP::Errors::ApiError.new_from_details('ServiceBrokerCatalogInvalid', humanized_message)
+    end
+
+    def route_service_warning
+      catalog.services.each { |service|
+        if service.requires.include?('route_forwarding')
+          @warnings << "Service #{service.name} is declared to be a route service but support for route services is disabled." \
+                       ' Users will be prevented from binding instances of this service with routes.'
+        end
+      }
     end
   end
 end

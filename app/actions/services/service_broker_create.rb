@@ -6,7 +6,7 @@ module VCAP::CloudController
 
     include ServiceBrokerRegistrationErrorParser
 
-    def initialize(service_manager, services_event_repository, warning_observer, access_validator, route_services_enabled=false)
+    def initialize(service_manager, services_event_repository, warning_observer, access_validator, route_services_enabled)
       @service_manager = service_manager
       @services_event_repository = services_event_repository
       @warning_observer = warning_observer
