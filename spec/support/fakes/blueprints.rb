@@ -229,6 +229,12 @@ module VCAP::CloudController
     route_service_url { Sham.url }
   end
 
+  RouteMapping.blueprint do
+    app  { AppFactory.make() }
+    route { Route.make }
+    app_port { rand(1024..65535) }
+  end
+
   ServiceBinding.blueprint do
     credentials       { Sham.service_credentials }
     service_instance  { ManagedServiceInstance.make }
