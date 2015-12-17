@@ -230,9 +230,8 @@ module VCAP::CloudController
   end
 
   RouteMapping.blueprint do
-    app  { AppFactory.make() }
-    route { Route.make }
-    app_port { rand(1024..65535) }
+    app  { AppFactory.make }
+    route { Route.make(space: app.space) }
   end
 
   ServiceBinding.blueprint do
