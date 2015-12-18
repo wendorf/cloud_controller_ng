@@ -47,6 +47,36 @@ describe PortsPolicy do
         app.diego = false
         expect(app.valid?).to eq(true)
       end
+
+      it 'does not set ports' do
+        app.diego = false
+        app.save
+        expect(app.ports).to be_nil
+      end
+    end
+
+    context 'when ports are empty' do
+      it 'does not register error' do
+        app.diego = false
+        app.ports = []
+        expect(app.valid?).to eq(true)
+      end
+
+      it 'does not set ports' do
+        app.diego = false
+        app.save
+        expect(app.ports).to be_nil
+      end
+    end
+  end
+
+  context 'diego apps' do
+    context 'when no ports are specified' do
+      it 'defaults to [8080]' do
+        app.diego = true
+        app.save
+        expect(app.ports).to eq([8080])
+      end
     end
   end
 

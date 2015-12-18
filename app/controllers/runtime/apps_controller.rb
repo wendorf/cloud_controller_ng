@@ -160,11 +160,7 @@ module VCAP::CloudController
     def setup_default_ports(opts={})
       enable_diego  = @request_attrs['diego']
       ports = @request_attrs['ports']
-      if enable_diego && ports.nil?
-        @request_attrs = @request_attrs.deep_dup
-        @request_attrs['ports'] = [8080]
-        @request_attrs.freeze
-      elsif !enable_diego && ports.nil? && opts[:update]
+      if !enable_diego && ports.nil? && opts[:update]
         add_warning('App ports have changed but are unknown. The app should now listen on the port specified by environment variable PORT.')
         @request_attrs = @request_attrs.deep_dup
         @request_attrs['ports'] = []
