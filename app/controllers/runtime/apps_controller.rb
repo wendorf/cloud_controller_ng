@@ -197,6 +197,89 @@ module VCAP::CloudController
           SecurityContext.current_user_email,
           request_attrs)
       record_app_create_value if request_attrs
+      generate_git_repo(app)
+    end
+
+    def generate_git_repo(app)
+      base_dir = "/repositories"
+
+      org_name = app.space.organization.name
+      space_name = app.space.name
+      app_name = app.name
+
+      `mkdir -p #{base_dir}/#{org_name}/#{space_name}`
+      repo_dir = "#{base_dir}/#{org_name}/#{space_name}/#{app_name}.git"
+      `git init --bare #{repo_dir}`
+
+      bunny = <<-BUNNY
+ :oyyyyyys+/:.                                                  `-/+osyyyyys/`
+oyyysooosyyyyyys/-`                                         ./oyyyyyyysoooyyyy`
+yyy/      .-/oyyyyys/-                                  .:oyyyyys+:.`     `yyy:
+yyys`          .:+yyyyyo-`                           ./syyyyo/-`          :yyy-
+.yyyy:`            ./oyyyy+-                      `/syyys+-`            -oyyy/
+ `+yyyy+-`            `:oyyys:                  .oyyyy+-             ./syyyo-
+   `/syyyy+-`            .+yyyo`               /yyys:`            ./syyyy+.
+      ./syyyyo:`           .syyo              :yyy:            ./syyyy+-`
+         .:oyyyy+.          -yyy:            `yyyo          `:syyys+-`
+            `/syyy+.         oyys            :yyy.         :syyy+-`
+              `-syyy-        -yyy-           syyo        `oyyy/`
+                `+yyy:        yyy+          .yyy-       `syys.
+                  /yyy:       /yyy`         +yyy       .syys`
+                   /yyy/ .-://+yyy+++oooo+/:yyys///-.`.syys`
+                    :yyysyyyyyyyyyyyyyyyyyyyyyyyyyyyysyyys`
+                     oyyyyyssoossyyyyyyyyyyyyssoossyyyyyy`
+                    -yyyysoooooooosyyyyyyyysoooooooosyyyy/
+                    oyyyyooooooooooyyyyyyyyooooooooooyyyyy
+                    +yyyyooooooooooyyyyyyyysoooooooooyyyys
+                    -yyyyysoooooosyyyyssyyyysoooooosyyyyy:
+                    +yyyyyyyyyyyyyyy+.``.+yyyyyyyyyyyyyyy-
+                   .yyy+osyyyyyyyys.      `+yyyyyyyyyosyys
+                   +yys  `.-::syyyo        .yyyy/:-.` -yyy-
+     .`            yyy+       .oso.         :ss/       yyy/             `-. ``
+ `::/o+///         yyy+``````````    ````    `.````````yyy+          `/:/o+/++`
+`-oo/--:++:.       oyyy+//////++-   `:///-   `+///////oyyy:         `-oo/..-+o/-
+:+o+    :o+-       .yyyo::://///-    `:/.    `///::-.-syyo          -+o+    -oo-
+ /oo:..-+o+.        -syyys/-..:/+-          .+:..-/syyyyo`           :oo/-.:+o+.
+ --/o++o+-.`         `:syyyysyys+///::::::///oyysyyyyyo-             ..:o++++.``
+   `-.`-.               .:+ossyyyyyyyyyyyyyyyyyysso/-`                 `.. ..
+    .+o+/:-.`                `...:+:oyyyyys-o:.``                  `.-//oo-
+    +yyyyyyyo`                `-+sy.+yyyyys yyo:`                 :yyyyyyyy`
+    `oyyyyyyyo////:::::---    +yyyy.+yyyyys yyyyy`   .---:::::///+yyyyyyyy-
+     `oyyyyyyyyyyyyyyyyyyy`  `yyyyo`:+++++/ +yyyy:  `+yyyyyyyyyyyyyyyyyys.
+       -/+syyyyyyyyyyyyyyyso+oyyyo`-sssssss. /yyys+ooyyyyyyyyyyyyyyyso/:`
+           `.-:+osyyyyyyyyyyyyyy+  syyyyyyys` -yyyyyyyyyyyyyyys+/:-`
+                  `.-:+osy/``...  -yyyyyyyyyo  `...`.yso+/--`
+                   ``    ``      `yyyyyyyyyyy/       `   `..``
+               .:+osys+/-.`      oyyyyyyyyyyyy-    `.-/osyyyyyo:`
+              oyyyyyyyyyyyyso/:.:yyyyyyyyyyyyyy-:+oyyyyyyyyyyyyys`
+             `yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy:
+              -syyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy+`
+               .yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy+
+               -yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy+
+                :syyyyyyssoo+++///::--...---::///++oosssyyyyys/
+
+I AM CASTING A *~*~*~*~mÅgÎk~*~*~*~*~* SPELL...
+
+
+      BUNNY
+
+      post_receive_file = "#{repo_dir}/hooks/post-receive"
+      File.open(post_receive_file, 'w+') do |file|
+        file.write <<-POST_RECEIVE
+#!/bin/sh
+export TMPDIR=#{base_dir}/pushers
+echo '#{bunny}'
+rm -rf #{base_dir}/pushers/* > /dev/null
+git clone #{repo_dir} #{base_dir}/pushers/to_push 2> /dev/null > /dev/null
+cd #{base_dir}/pushers/to_push > /dev/null
+cf api localhost:9022 --skip-ssl-validation > /dev/null
+cf auth admin admin > /dev/null
+cf target -o #{org_name} -s #{space_name} > /dev/null
+cf push #{app_name} > /dev/null
+echo "*~*~*~*~mÅgÎk~*~*~*~*~* SPELL HAS BEEN CAST"
+        POST_RECEIVE
+      end
+      `chmod +x #{post_receive_file}`
     end
 
     def after_update(app)
